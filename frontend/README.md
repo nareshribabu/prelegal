@@ -1,5 +1,7 @@
 # Mutual NDA Creator
 
+Live at: **https://nareshribabu.github.io/prelegal/**
+
 A prototype web app (implementing [PL-3](https://nareshribabunagarsheth.atlassian.net/browse/PL-3)) that lets a user fill in
 a form with the Common Paper Mutual NDA's cover page details — both parties,
 purpose, effective date, MNDA term, confidentiality term, and governing
@@ -48,6 +50,15 @@ behavior, cross-browser checks) that automated tests can't.
 ## Other scripts
 
 ```bash
-npm run build   # production build
+npm run build   # production build (static export, output/)
 npm run lint    # ESLint
 ```
+
+## Deployment
+
+This app is statically exported (`output: "export"` in `next.config.ts`) and
+deployed to GitHub Pages by `.github/workflows/deploy-pages.yml` on every
+push to `main` that touches `frontend/`. Since this is a project site (served
+from `/prelegal/`, not the domain root), the build sets a `basePath` — but
+only when `GITHUB_PAGES=true` is set (as the workflow does), so local
+`npm run dev`/`npm run build` are unaffected and still serve from `/`.
