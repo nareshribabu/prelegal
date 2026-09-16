@@ -12,11 +12,22 @@ const inputClasses =
 
 const labelClasses = "block text-sm font-medium text-zinc-700 dark:text-zinc-300";
 
+const MAX_TERM_YEARS = 99;
+
+/** Coerces a raw number input value to a whole number of years in [1, MAX_TERM_YEARS]. */
+function clampTermYears(rawValue: string): number {
+  const rounded = Math.round(Number(rawValue));
+  if (!Number.isFinite(rounded)) return 1;
+  return Math.min(MAX_TERM_YEARS, Math.max(1, rounded));
+}
+
 function PartyFields({
+  idPrefix,
   label,
   party,
   onChange,
 }: {
+  idPrefix: string;
   label: string;
   party: PartyDetails;
   onChange: (party: PartyDetails) => void;
@@ -25,8 +36,11 @@ function PartyFields({
     <fieldset className="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
       <legend className="px-1 text-sm font-semibold">{label}</legend>
       <div>
-        <label className={labelClasses}>Company name</label>
+        <label className={labelClasses} htmlFor={`${idPrefix}-companyName`}>
+          Company name
+        </label>
         <input
+          id={`${idPrefix}-companyName`}
           className={inputClasses}
           value={party.companyName}
           onChange={(e) => onChange({ ...party, companyName: e.target.value })}
@@ -35,8 +49,11 @@ function PartyFields({
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClasses}>Signatory name</label>
+          <label className={labelClasses} htmlFor={`${idPrefix}-signatoryName`}>
+            Signatory name
+          </label>
           <input
+            id={`${idPrefix}-signatoryName`}
             className={inputClasses}
             value={party.signatoryName}
             onChange={(e) => onChange({ ...party, signatoryName: e.target.value })}
@@ -44,8 +61,11 @@ function PartyFields({
           />
         </div>
         <div>
-          <label className={labelClasses}>Signatory title</label>
+          <label className={labelClasses} htmlFor={`${idPrefix}-signatoryTitle`}>
+            Signatory title
+          </label>
           <input
+            id={`${idPrefix}-signatoryTitle`}
             className={inputClasses}
             value={party.signatoryTitle}
             onChange={(e) => onChange({ ...party, signatoryTitle: e.target.value })}
@@ -54,8 +74,11 @@ function PartyFields({
         </div>
       </div>
       <div>
-        <label className={labelClasses}>Notice address (email or postal)</label>
+        <label className={labelClasses} htmlFor={`${idPrefix}-noticeAddress`}>
+          Notice address (email or postal)
+        </label>
         <input
+          id={`${idPrefix}-noticeAddress`}
           className={inputClasses}
           value={party.noticeAddress}
           onChange={(e) => onChange({ ...party, noticeAddress: e.target.value })}
@@ -70,11 +93,13 @@ export function MndaForm({ data, onChange }: MndaFormProps) {
   return (
     <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
       <PartyFields
+        idPrefix="party1"
         label="Party 1"
         party={data.partyOne}
         onChange={(partyOne) => onChange({ ...data, partyOne })}
       />
       <PartyFields
+        idPrefix="party2"
         label="Party 2"
         party={data.partyTwo}
         onChange={(partyTwo) => onChange({ ...data, partyTwo })}
@@ -84,8 +109,11 @@ export function MndaForm({ data, onChange }: MndaFormProps) {
         <legend className="px-1 text-sm font-semibold">Deal details</legend>
 
         <div>
-          <label className={labelClasses}>Purpose</label>
+          <label className={labelClasses} htmlFor="purpose">
+            Purpose
+          </label>
           <textarea
+            id="purpose"
             className={inputClasses}
             rows={2}
             value={data.purpose}
@@ -94,8 +122,11 @@ export function MndaForm({ data, onChange }: MndaFormProps) {
         </div>
 
         <div>
-          <label className={labelClasses}>Effective date</label>
+          <label className={labelClasses} htmlFor="effectiveDate">
+            Effective date
+          </label>
           <input
+            id="effectiveDate"
             type="date"
             className={inputClasses}
             value={data.effectiveDate}
@@ -104,9 +135,12 @@ export function MndaForm({ data, onChange }: MndaFormProps) {
         </div>
 
         <div>
-          <label className={labelClasses}>MNDA term</label>
+          <label className={labelClasses} htmlFor="mndaTermType">
+            MNDA term
+          </label>
           <div className="mt-1 flex items-center gap-2">
             <select
+              id="mndaTermType"
               className={inputClasses}
               value={data.mndaTermType}
               onChange={(e) =>
@@ -118,20 +152,25 @@ export function MndaForm({ data, onChange }: MndaFormProps) {
             </select>
             {data.mndaTermType === "expires" && (
               <input
+                aria-label="MNDA term years"
                 type="number"
                 min={1}
+                max={MAX_TERM_YEARS}
                 className={`${inputClasses} w-24`}
                 value={data.mndaTermYears}
-                onChange={(e) => onChange({ ...data, mndaTermYears: Number(e.target.value) || 1 })}
+                onChange={(e) => onChange({ ...data, mndaTermYears: clampTermYears(e.target.value) })}
               />
             )}
           </div>
         </div>
 
         <div>
-          <label className={labelClasses}>Term of confidentiality</label>
+          <label className={labelClasses} htmlFor="confidentialityTermType">
+            Term of confidentiality
+          </label>
           <div className="mt-1 flex items-center gap-2">
             <select
+              id="confidentialityTermType"
               className={inputClasses}
               value={data.confidentialityTermType}
               onChange={(e) =>
@@ -146,12 +185,14 @@ export function MndaForm({ data, onChange }: MndaFormProps) {
             </select>
             {data.confidentialityTermType === "years" && (
               <input
+                aria-label="Term of confidentiality years"
                 type="number"
                 min={1}
+                max={MAX_TERM_YEARS}
                 className={`${inputClasses} w-24`}
                 value={data.confidentialityTermYears}
                 onChange={(e) =>
-                  onChange({ ...data, confidentialityTermYears: Number(e.target.value) || 1 })
+                  onChange({ ...data, confidentialityTermYears: clampTermYears(e.target.value) })
                 }
               />
             )}
@@ -160,8 +201,11 @@ export function MndaForm({ data, onChange }: MndaFormProps) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClasses}>Governing law (state)</label>
+            <label className={labelClasses} htmlFor="governingLaw">
+              Governing law (state)
+            </label>
             <input
+              id="governingLaw"
               className={inputClasses}
               value={data.governingLaw}
               onChange={(e) => onChange({ ...data, governingLaw: e.target.value })}
@@ -169,8 +213,11 @@ export function MndaForm({ data, onChange }: MndaFormProps) {
             />
           </div>
           <div>
-            <label className={labelClasses}>Jurisdiction</label>
+            <label className={labelClasses} htmlFor="jurisdiction">
+              Jurisdiction
+            </label>
             <input
+              id="jurisdiction"
               className={inputClasses}
               value={data.jurisdiction}
               onChange={(e) => onChange({ ...data, jurisdiction: e.target.value })}

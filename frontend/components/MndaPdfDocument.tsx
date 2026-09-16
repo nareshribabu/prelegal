@@ -3,10 +3,9 @@ import {
   MndaFormData,
   SOURCE_ATTRIBUTION,
   TextRun,
+  buildCoverPageFields,
   buildStandardTerms,
-  formatConfidentialityTermCoverPage,
   formatDate,
-  formatMndaTermCoverPage,
 } from "@/lib/mnda-content";
 
 const styles = StyleSheet.create({
@@ -70,27 +69,19 @@ export function MndaPdfDocument({ data }: { data: MndaFormData }) {
           </View>
         </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Purpose</Text>
-          <Text>{data.purpose || "[Purpose]"}</Text>
-        </View>
-        <View style={styles.field}>
-          <Text style={styles.label}>MNDA Term</Text>
-          <Text>{formatMndaTermCoverPage(data)}</Text>
-        </View>
-        <View style={styles.field}>
-          <Text style={styles.label}>Term of Confidentiality</Text>
-          <Text>{formatConfidentialityTermCoverPage(data)}</Text>
-        </View>
-        <View style={styles.field}>
-          <Text style={styles.label}>Governing Law &amp; Jurisdiction</Text>
-          <Text>Governing Law: {data.governingLaw || "[Governing Law]"}</Text>
-          <Text>Jurisdiction: {data.jurisdiction || "[Jurisdiction]"}</Text>
-        </View>
+        {buildCoverPageFields(data).map((field) => (
+          <View key={field.label} style={styles.field}>
+            <Text style={styles.label}>{field.label}</Text>
+            <Text>{field.value}</Text>
+          </View>
+        ))}
 
         <Text style={styles.sectionHeading}>Standard Terms</Text>
         {clauses.map((clause) => (
-          <View key={clause.number} wrap={false}>
+          // Not `wrap={false}`: an unusually long clause (e.g. a long Purpose
+          // substituted in) must still be allowed to split across pages rather
+          // than overflow the page height.
+          <View key={clause.number} minPresenceAhead={40}>
             <Text style={styles.clauseHeading}>
               {clause.number}. {clause.title}
             </Text>

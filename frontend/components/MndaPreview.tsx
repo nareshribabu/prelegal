@@ -2,10 +2,9 @@ import {
   MndaFormData,
   SOURCE_ATTRIBUTION,
   TextRun,
+  buildCoverPageFields,
   buildStandardTerms,
-  formatConfidentialityTermCoverPage,
   formatDate,
-  formatMndaTermCoverPage,
 } from "@/lib/mnda-content";
 
 function Runs({ runs }: { runs: TextRun[] }) {
@@ -47,26 +46,12 @@ export function MndaPreview({ data }: { data: MndaFormData }) {
         </div>
 
         <dl className="space-y-2">
-          <div>
-            <dt className="font-semibold">Purpose</dt>
-            <dd>{data.purpose || "[Purpose]"}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">MNDA Term</dt>
-            <dd>{formatMndaTermCoverPage(data)}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Term of Confidentiality</dt>
-            <dd>{formatConfidentialityTermCoverPage(data)}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Governing Law &amp; Jurisdiction</dt>
-            <dd>
-              Governing Law: {data.governingLaw || "[Governing Law]"}
-              <br />
-              Jurisdiction: {data.jurisdiction || "[Jurisdiction]"}
-            </dd>
-          </div>
+          {buildCoverPageFields(data).map((field) => (
+            <div key={field.label}>
+              <dt className="font-semibold">{field.label}</dt>
+              <dd>{field.value}</dd>
+            </div>
+          ))}
         </dl>
       </section>
 

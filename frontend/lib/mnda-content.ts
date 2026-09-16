@@ -21,25 +21,34 @@ export interface MndaFormData {
   jurisdiction: string;
 }
 
-const emptyParty: PartyDetails = {
-  companyName: "",
-  signatoryName: "",
-  signatoryTitle: "",
-  noticeAddress: "",
-};
+function createEmptyParty(): PartyDetails {
+  return {
+    companyName: "",
+    signatoryName: "",
+    signatoryTitle: "",
+    noticeAddress: "",
+  };
+}
 
-export const defaultMndaFormData: MndaFormData = {
-  partyOne: { ...emptyParty },
-  partyTwo: { ...emptyParty },
-  purpose: "Evaluating whether to enter into a business relationship between the parties.",
-  effectiveDate: new Date().toISOString().slice(0, 10),
-  mndaTermType: "expires",
-  mndaTermYears: 1,
-  confidentialityTermType: "years",
-  confidentialityTermYears: 1,
-  governingLaw: "",
-  jurisdiction: "",
-};
+/**
+ * Returns a fresh form data object each call. Nested objects (partyOne/partyTwo)
+ * must not be shared across instances, since React state updates replace them
+ * immutably but the initial object itself is otherwise held by reference.
+ */
+export function createDefaultMndaFormData(): MndaFormData {
+  return {
+    partyOne: createEmptyParty(),
+    partyTwo: createEmptyParty(),
+    purpose: "Evaluating whether to enter into a business relationship between the parties.",
+    effectiveDate: new Date().toISOString().slice(0, 10),
+    mndaTermType: "expires",
+    mndaTermYears: 1,
+    confidentialityTermType: "years",
+    confidentialityTermYears: 1,
+    governingLaw: "",
+    jurisdiction: "",
+  };
+}
 
 export function formatMndaTermCoverPage(data: MndaFormData): string {
   return data.mndaTermType === "expires"
@@ -75,6 +84,26 @@ export function formatDate(isoDate: string): string {
     day: "numeric",
     timeZone: "UTC",
   });
+}
+
+export interface CoverPageField {
+  label: string;
+  value: string;
+}
+
+/**
+ * The label/value pairs shown in the Cover Page's "deal details" block. Shared
+ * between MndaPreview and MndaPdfDocument so the two renderers can't drift on
+ * wording or placeholder fallbacks.
+ */
+export function buildCoverPageFields(data: MndaFormData): CoverPageField[] {
+  return [
+    { label: "Purpose", value: data.purpose || "[Purpose]" },
+    { label: "MNDA Term", value: formatMndaTermCoverPage(data) },
+    { label: "Term of Confidentiality", value: formatConfidentialityTermCoverPage(data) },
+    { label: "Governing Law", value: data.governingLaw || "[Governing Law]" },
+    { label: "Jurisdiction", value: data.jurisdiction || "[Jurisdiction]" },
+  ];
 }
 
 /** A run of text; `bold` marks defined terms (rendered as **term** in the source templates). */
