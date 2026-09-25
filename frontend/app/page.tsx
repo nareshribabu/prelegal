@@ -10,7 +10,7 @@ export default function Dashboard() {
 
   return (
     <main className="flex-1 p-6 lg:p-10">
-      <h1 className="mb-6 text-lg font-semibold" style={{ color: "#032147" }}>
+      <h1 className="mb-6 text-3xl font-bold text-[#032147] dark:text-white">
         Documents
       </h1>
       <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

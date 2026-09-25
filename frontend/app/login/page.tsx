@@ -21,7 +21,7 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm space-y-4 rounded-lg border border-zinc-200 p-8 shadow-sm dark:border-zinc-800"
       >
-        <h1 className="text-xl font-semibold" style={{ color: "#032147" }}>
+        <h1 className="text-3xl font-bold text-[#032147] dark:text-white">
           Sign in to Prelegal
         </h1>
         <div className="space-y-1">
