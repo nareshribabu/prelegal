@@ -86,10 +86,15 @@ Backend available at http://localhost:8000
     `localStorage` (`frontend/lib/openRouterKey.ts`) and never sent to any
     server we control; once set, the page switches to the same chat UI, now
     calling OpenRouter's REST API directly from the browser with that key
-    (`frontend/lib/mndaChatOpenRouter.ts`). Uses `google/gemma-4-26b-a4b-it:free`
-    with no pinned inference provider, not `openai/gpt-oss-120b`/Cerebras —
-    the free-tier model exists so this path works with a $0-limit BYOK key,
-    and none of OpenRouter's free models are served by Cerebras. This
+    (`frontend/lib/mndaChatOpenRouter.ts`). Uses
+    `nvidia/nemotron-3-super-120b-a12b:free`, not `openai/gpt-oss-120b`/Cerebras
+    — the free-tier model exists so this path works with a $0-limit BYOK key.
+    Each `:free` slug on OpenRouter maps to exactly one dedicated free-tier
+    backend (not the multi-provider pool the paid model uses), so the model
+    choice here was checked directly against OpenRouter's endpoints API for
+    Structured Outputs support on that specific backend — Google's free Gemma
+    variants looked identical on paper but their sole free backend (Google AI
+    Studio) doesn't actually support it, which is why this isn't Gemma. This
     duplicates the backend's system prompt and Structured Outputs JSON
     schema by hand in TypeScript, since GitHub Pages has no backend to
     share that logic with — keep the two in sync manually when either

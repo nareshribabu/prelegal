@@ -6,12 +6,17 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 /**
  * A free (":free") OpenRouter model, so this path works with a $0-limit
  * BYOK key - unlike the backend's openai/gpt-oss-120b via Cerebras, which
- * always costs a small amount per token and has no free tier. None of
- * OpenRouter's free models are served by Cerebras, so this path doesn't
- * pin an inference provider either - it lets OpenRouter route across
- * whichever of this model's several free-tier providers is available.
+ * always costs a small amount per token and has no free tier.
+ *
+ * Each ":free" slug on OpenRouter maps to exactly one dedicated free-tier
+ * backend (not the multi-provider pool the paid model uses), so picking a
+ * model here means picking a specific backend. Checked directly against
+ * OpenRouter's endpoints API: this one's free-tier backend (Nvidia itself)
+ * supports Structured Outputs; Google's free Gemma variants do not (their
+ * sole free backend, Google AI Studio, lacks structured_outputs support
+ * entirely - no provider-routing fix can work around that).
  */
-const MODEL = "google/gemma-4-26b-a4b-it:free";
+const MODEL = "nvidia/nemotron-3-super-120b-a12b:free";
 
 const PARTY_SCHEMA = {
   type: "object",
@@ -114,10 +119,9 @@ export function createOpenRouterMndaChatSender(apiKey: string): SendMndaChatMess
       },
       body: JSON.stringify({
         model: MODEL,
-        // Not every provider serving this free model supports structured
-        // JSON output - without this, OpenRouter only *prefers* a provider
-        // that does, and can still route to one that doesn't, which fails
-        // with an opaque "Provider returned error".
+        // Harmless safety net: this model's free tier currently has a single
+        // backend that does support Structured Outputs, but require_parameters
+        // guards against ever silently falling back to one that doesn't.
         provider: { require_parameters: true },
         reasoning: { effort: "low" },
         messages: [{ role: "system", content: buildSystemPrompt(fields) }, ...messages],
