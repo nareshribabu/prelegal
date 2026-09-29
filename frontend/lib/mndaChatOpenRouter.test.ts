@@ -67,6 +67,19 @@ describe("createOpenRouterMndaChatSender", () => {
     await expect(sendMessage([], createDefaultMndaFormData())).rejects.toThrow();
   });
 
+  it("includes the raw response body when content is missing for an unrecognized reason", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ choices: [{ message: {}, some_unexpected_field: "mystery" }] }),
+      }))
+    );
+
+    const sendMessage = createOpenRouterMndaChatSender("sk-or-test-key");
+    await expect(sendMessage([], createDefaultMndaFormData())).rejects.toThrow(/mystery/);
+  });
+
   it("throws a specific message when the response was cut off while reasoning", async () => {
     vi.stubGlobal(
       "fetch",

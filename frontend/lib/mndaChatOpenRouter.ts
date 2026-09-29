@@ -150,14 +150,15 @@ export function createOpenRouterMndaChatSender(apiKey: string): SendMndaChatMess
     const choice = body?.choices?.[0];
     const content = choice?.message?.content;
     if (typeof content !== "string" || content.length === 0) {
-      if (choice?.finish_reason === "length") {
+      const finishReason = choice?.finish_reason ?? choice?.native_finish_reason;
+      if (finishReason === "length") {
         throw new Error(
           "OpenRouter response was cut off before it finished (ran out of tokens while reasoning). Try again."
         );
       }
-      throw new Error(
-        `OpenRouter response missing message content (finish_reason: ${choice?.finish_reason ?? "unknown"})`
-      );
+      // Unexpected shape - dump the raw response so this is diagnosable from
+      // the error alone instead of needing another round-trip to guess at it.
+      throw new Error(`OpenRouter response missing message content. Raw response: ${JSON.stringify(body).slice(0, 800)}`);
     }
 
     return JSON.parse(content) as MndaChatResult;
