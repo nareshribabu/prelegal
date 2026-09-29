@@ -41,6 +41,7 @@ jobs:
         working-directory: frontend
         env:
           GITHUB_PAGES: "true"
+          NEXT_PUBLIC_GITHUB_PAGES: "true"
         run: npm run build
 
       - uses: actions/configure-pages@v5
