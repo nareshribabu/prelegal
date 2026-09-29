@@ -1,16 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { MndaFormData, createDefaultMndaFormData } from "@/lib/mnda-content";
+import { isGithubPagesBuild } from "@/lib/deployment";
+import {
+  clearStoredOpenRouterKey,
+  getStoredOpenRouterKey,
+  setStoredOpenRouterKey,
+  subscribeToOpenRouterKeyChanges,
+} from "@/lib/openRouterKey";
+import { sendMndaChatMessage } from "@/lib/mndaChatBackend";
+import { createOpenRouterMndaChatSender } from "@/lib/mndaChatOpenRouter";
+import { MndaChat } from "@/components/MndaChat";
 import { MndaForm } from "@/components/MndaForm";
+import { MndaKeySettings } from "@/components/MndaKeySettings";
 import { MndaPreview } from "@/components/MndaPreview";
 import { MndaPdfDocument } from "@/components/MndaPdfDocument";
 
+function getServerApiKeySnapshot() {
+  return null;
+}
+
 export function MndaCreator() {
+  const onGithubPages = isGithubPagesBuild();
   const [data, setData] = useState<MndaFormData>(createDefaultMndaFormData);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const apiKey = useSyncExternalStore(
+    subscribeToOpenRouterKeyChanges,
+    getStoredOpenRouterKey,
+    getServerApiKeySnapshot
+  );
 
   async function handleDownload() {
     setIsGenerating(true);
@@ -40,9 +61,12 @@ export function MndaCreator() {
     }
   }
 
+  const showChat = !onGithubPages || Boolean(apiKey);
+  const sendMessage = onGithubPages && apiKey ? createOpenRouterMndaChatSender(apiKey) : sendMndaChatMessage;
+
   return (
     <main className="grid flex-1 grid-cols-1 gap-8 p-6 lg:grid-cols-2 lg:p-10">
-      <div className="space-y-4">
+      <div className="flex h-full min-h-0 flex-col space-y-4 lg:max-h-[calc(100vh-2rem)]">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Mutual NDA Creator</h1>
           <button
@@ -55,14 +79,27 @@ export function MndaCreator() {
           </button>
         </div>
         <p className="text-sm text-zinc-500">
-          Fill in the details below. The document on the right updates as you type.
+          {showChat
+            ? "Chat with the assistant below. The document on the right updates as you answer."
+            : "Fill in the details below. The document on the right updates as you type."}
         </p>
         {downloadError && (
           <p role="alert" className="text-sm text-red-600 dark:text-red-400">
             {downloadError}
           </p>
         )}
-        <MndaForm data={data} onChange={setData} />
+        {onGithubPages && (
+          <MndaKeySettings
+            hasKey={Boolean(apiKey)}
+            onSave={setStoredOpenRouterKey}
+            onRemove={clearStoredOpenRouterKey}
+          />
+        )}
+        {showChat ? (
+          <MndaChat fields={data} onFieldsChange={setData} sendMessage={sendMessage} />
+        ) : (
+          <MndaForm data={data} onChange={setData} />
+        )}
       </div>
 
       <div className="rounded-lg bg-zinc-100 p-4 dark:bg-zinc-900 lg:overflow-y-auto lg:max-h-[calc(100vh-2rem)]">
