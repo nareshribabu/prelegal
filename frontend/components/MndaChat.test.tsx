@@ -53,9 +53,9 @@ describe("MndaChat", () => {
     await waitFor(() => expect(input).toHaveValue(""));
   });
 
-  it("shows an error message when sendMessage rejects and does not update fields", async () => {
+  it("shows sendMessage's own error message when it rejects, and does not update fields", async () => {
     const sendMessage = vi.fn(async () => {
-      throw new Error("network error");
+      throw new Error("OpenRouter error: Rate limit exceeded");
     });
     const onFieldsChange = vi.fn();
     const user = userEvent.setup();
@@ -64,8 +64,21 @@ describe("MndaChat", () => {
     await user.type(screen.getByLabelText("Message"), "hello");
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/went wrong/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent("OpenRouter error: Rate limit exceeded");
     expect(onFieldsChange).not.toHaveBeenCalled();
+  });
+
+  it("falls back to a generic error message when sendMessage rejects without one", async () => {
+    const sendMessage = vi.fn(async () => {
+      throw new Error();
+    });
+    const user = userEvent.setup();
+
+    render(<MndaChat fields={createDefaultMndaFormData()} onFieldsChange={vi.fn()} sendMessage={sendMessage} />);
+    await user.type(screen.getByLabelText("Message"), "hello");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/went wrong/i);
   });
 
   it("disables the Send button while empty and while a request is in flight", async () => {
