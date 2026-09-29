@@ -28,6 +28,7 @@ describe("createOpenRouterMndaChatSender", () => {
     const sentBody = JSON.parse(init.body as string);
     expect(sentBody.model).toBe("nvidia/nemotron-3-super-120b-a12b:free");
     expect(sentBody.provider).toEqual({ require_parameters: true });
+    expect(sentBody.max_tokens).toBeGreaterThan(0);
     expect(sentBody.response_format.type).toBe("json_schema");
     expect(sentBody.messages[0].role).toBe("system");
     expect(sentBody.messages.at(-1)).toEqual({ role: "user", content: "hello" });
@@ -64,5 +65,18 @@ describe("createOpenRouterMndaChatSender", () => {
 
     const sendMessage = createOpenRouterMndaChatSender("sk-or-test-key");
     await expect(sendMessage([], createDefaultMndaFormData())).rejects.toThrow();
+  });
+
+  it("throws a specific message when the response was cut off while reasoning", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ choices: [{ message: { content: "" }, finish_reason: "length" }] }),
+      }))
+    );
+
+    const sendMessage = createOpenRouterMndaChatSender("sk-or-test-key");
+    await expect(sendMessage([], createDefaultMndaFormData())).rejects.toThrow(/ran out of tokens/i);
   });
 });

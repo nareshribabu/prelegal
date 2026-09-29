@@ -124,6 +124,12 @@ export function createOpenRouterMndaChatSender(apiKey: string): SendMndaChatMess
         // guards against ever silently falling back to one that doesn't.
         provider: { require_parameters: true },
         reasoning: { effort: "low" },
+        // reasoning.effort reserves a share of max_tokens for internal
+        // reasoning before any of the actual reply is generated - without an
+        // explicit, generous max_tokens, a reasoning model can spend its
+        // entire (small default) budget thinking and return empty content
+        // with finish_reason "length".
+        max_tokens: 4096,
         messages: [{ role: "system", content: buildSystemPrompt(fields) }, ...messages],
         response_format: {
           type: "json_schema",
@@ -141,8 +147,18 @@ export function createOpenRouterMndaChatSender(apiKey: string): SendMndaChatMess
     }
 
     const body = await response.json();
-    const content = body?.choices?.[0]?.message?.content;
-    if (typeof content !== "string") throw new Error("OpenRouter response missing message content");
+    const choice = body?.choices?.[0];
+    const content = choice?.message?.content;
+    if (typeof content !== "string" || content.length === 0) {
+      if (choice?.finish_reason === "length") {
+        throw new Error(
+          "OpenRouter response was cut off before it finished (ran out of tokens while reasoning). Try again."
+        );
+      }
+      throw new Error(
+        `OpenRouter response missing message content (finish_reason: ${choice?.finish_reason ?? "unknown"})`
+      );
+    }
 
     return JSON.parse(content) as MndaChatResult;
   };
