@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { normalizeApiKey } from "@/lib/openRouterKey";
 
 interface MndaKeySettingsProps {
   hasKey: boolean;
@@ -29,9 +30,9 @@ export function MndaKeySettings({ hasKey, onSave, onRemove }: MndaKeySettingsPro
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed) return;
-    onSave(trimmed);
+    const key = normalizeApiKey(input);
+    if (!key) return;
+    onSave(key);
     setInput("");
   }
 
