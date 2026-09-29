@@ -86,11 +86,16 @@ Backend available at http://localhost:8000
     `localStorage` (`frontend/lib/openRouterKey.ts`) and never sent to any
     server we control; once set, the page switches to the same chat UI, now
     calling OpenRouter's REST API directly from the browser with that key
-    (`frontend/lib/mndaChatOpenRouter.ts`). This duplicates the backend's
-    system prompt and Structured Outputs JSON schema by hand in TypeScript,
-    since GitHub Pages has no backend to share that logic with — keep the two
-    in sync manually when either changes. Which mode a build uses is decided
-    at build time by `frontend/lib/deployment.ts` reading
+    (`frontend/lib/mndaChatOpenRouter.ts`). Uses `google/gemma-4-26b-a4b-it:free`
+    with no pinned inference provider, not `openai/gpt-oss-120b`/Cerebras —
+    the free-tier model exists so this path works with a $0-limit BYOK key,
+    and none of OpenRouter's free models are served by Cerebras. This
+    duplicates the backend's system prompt and Structured Outputs JSON
+    schema by hand in TypeScript, since GitHub Pages has no backend to
+    share that logic with — keep the two in sync manually when either
+    changes (the model/provider difference is intentional, not drift).
+    Which mode a build uses is decided at build time by
+    `frontend/lib/deployment.ts` reading
     `NEXT_PUBLIC_GITHUB_PAGES`, set alongside the existing `GITHUB_PAGES` flag
     in `.github/workflows/deploy-pages.yml`.
 - **Docker**: `Dockerfile` and `scripts/start-*` / `stop-*` exist, but Docker

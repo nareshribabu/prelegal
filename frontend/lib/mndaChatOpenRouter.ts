@@ -2,8 +2,16 @@ import { MndaFormData } from "@/lib/mnda-content";
 import { ChatMessage, MndaChatResult, SendMndaChatMessage } from "@/lib/mndaChatTypes";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "openai/gpt-oss-120b";
-const PROVIDER = { order: ["cerebras"] };
+
+/**
+ * A free (":free") OpenRouter model, so this path works with a $0-limit
+ * BYOK key - unlike the backend's openai/gpt-oss-120b via Cerebras, which
+ * always costs a small amount per token and has no free tier. None of
+ * OpenRouter's free models are served by Cerebras, so this path doesn't
+ * pin an inference provider either - it lets OpenRouter route across
+ * whichever of this model's several free-tier providers is available.
+ */
+const MODEL = "google/gemma-4-26b-a4b-it:free";
 
 const PARTY_SCHEMA = {
   type: "object",
@@ -106,7 +114,6 @@ export function createOpenRouterMndaChatSender(apiKey: string): SendMndaChatMess
       },
       body: JSON.stringify({
         model: MODEL,
-        provider: PROVIDER,
         reasoning: { effort: "low" },
         messages: [{ role: "system", content: buildSystemPrompt(fields) }, ...messages],
         response_format: {
@@ -116,7 +123,13 @@ export function createOpenRouterMndaChatSender(apiKey: string): SendMndaChatMess
       }),
     });
 
-    if (!response.ok) throw new Error("OpenRouter request failed");
+    if (!response.ok) {
+      // This is the user's own key/account, so surface OpenRouter's actual
+      // reason (e.g. rate limit, invalid key) instead of a generic message.
+      const errorBody = await response.json().catch(() => null);
+      const detail = errorBody?.error?.message;
+      throw new Error(detail ? `OpenRouter error: ${detail}` : "OpenRouter request failed. Check your API key and try again.");
+    }
 
     const body = await response.json();
     const content = body?.choices?.[0]?.message?.content;

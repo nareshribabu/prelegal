@@ -26,14 +26,27 @@ describe("createOpenRouterMndaChatSender", () => {
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer sk-or-test-key");
 
     const sentBody = JSON.parse(init.body as string);
-    expect(sentBody.model).toBe("openai/gpt-oss-120b");
-    expect(sentBody.provider).toEqual({ order: ["cerebras"] });
+    expect(sentBody.model).toBe("google/gemma-4-26b-a4b-it:free");
+    expect(sentBody.provider).toBeUndefined();
     expect(sentBody.response_format.type).toBe("json_schema");
     expect(sentBody.messages[0].role).toBe("system");
     expect(sentBody.messages.at(-1)).toEqual({ role: "user", content: "hello" });
   });
 
-  it("throws when the OpenRouter response is not ok", async () => {
+  it("throws with OpenRouter's own error message when the response is not ok", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: false,
+        json: async () => ({ error: { message: "Rate limit exceeded" } }),
+      }))
+    );
+
+    const sendMessage = createOpenRouterMndaChatSender("sk-or-test-key");
+    await expect(sendMessage([], createDefaultMndaFormData())).rejects.toThrow("Rate limit exceeded");
+  });
+
+  it("throws a generic message when the response is not ok and has no error detail", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({ ok: false, json: async () => ({}) }))

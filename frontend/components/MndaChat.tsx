@@ -37,8 +37,8 @@ export function MndaChat({ fields, onFieldsChange, sendMessage }: MndaChatProps)
       const result = await sendMessage(nextMessages, fields);
       setMessages([...nextMessages, { role: "assistant", content: result.reply }]);
       onFieldsChange(result.fields);
-    } catch {
-      setError("Something went wrong sending that message. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : "Something went wrong sending that message. Please try again.");
     } finally {
       setIsSending(false);
     }
