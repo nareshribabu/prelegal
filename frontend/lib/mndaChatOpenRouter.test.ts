@@ -26,7 +26,7 @@ describe("createOpenRouterMndaChatSender", () => {
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer sk-or-test-key");
 
     const sentBody = JSON.parse(init.body as string);
-    expect(sentBody.model).toBe("qwen/qwen3.8-27b:free");
+    expect(sentBody.model).toBe("google/gemma-4-26b-a4b-it:free");
     expect(sentBody.provider).toBeUndefined();
     expect(sentBody.response_format.type).toBe("json_schema");
     expect(sentBody.messages[0].role).toBe("system");

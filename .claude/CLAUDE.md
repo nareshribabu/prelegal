@@ -86,7 +86,7 @@ Backend available at http://localhost:8000
     `localStorage` (`frontend/lib/openRouterKey.ts`) and never sent to any
     server we control; once set, the page switches to the same chat UI, now
     calling OpenRouter's REST API directly from the browser with that key
-    (`frontend/lib/mndaChatOpenRouter.ts`). Uses `qwen/qwen3.8-27b:free`
+    (`frontend/lib/mndaChatOpenRouter.ts`). Uses `google/gemma-4-26b-a4b-it:free`
     with no pinned inference provider, not `openai/gpt-oss-120b`/Cerebras —
     the free-tier model exists so this path works with a $0-limit BYOK key,
     and none of OpenRouter's free models are served by Cerebras. This

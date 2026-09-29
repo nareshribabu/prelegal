@@ -11,7 +11,7 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
  * pin an inference provider either - it lets OpenRouter route across
  * whichever of this model's several free-tier providers is available.
  */
-const MODEL = "qwen/qwen3.8-27b:free";
+const MODEL = "google/gemma-4-26b-a4b-it:free";
 
 const PARTY_SCHEMA = {
   type: "object",
