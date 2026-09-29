@@ -14,7 +14,12 @@ export function useRequireAuth(): boolean {
   const loggedIn = useSyncExternalStore(subscribeToAuthChanges, isLoggedIn, getServerSnapshot);
 
   useEffect(() => {
-    if (!loggedIn) {
+    // Re-check the real flag here rather than trusting `loggedIn`: right after a
+    // fresh page load (e.g. a static-export client navigation that fell back to a
+    // hard reload), the first render can still reflect getServerSnapshot's `false`
+    // when the user is actually logged in - redirecting on that would bounce a
+    // logged-in user straight back to /login.
+    if (!isLoggedIn()) {
       router.replace("/login");
     }
   }, [loggedIn, router]);
