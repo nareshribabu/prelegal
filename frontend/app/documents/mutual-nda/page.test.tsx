@@ -27,4 +27,11 @@ describe("MutualNdaPage", () => {
     expect(screen.getByRole("heading", { name: "Mutual NDA Creator" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /back to dashboard/i })).toHaveAttribute("href", "/");
   });
+
+  it("shows a sign-out button when logged in", () => {
+    login();
+    render(<MutualNdaPage />);
+
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+  });
 });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/useRequireAuth";
 import { catalog } from "@/lib/catalog";
+import { SignOutButton } from "@/components/SignOutButton";
 
 export default function Dashboard() {
   const ready = useRequireAuth();
@@ -10,9 +11,12 @@ export default function Dashboard() {
 
   return (
     <main className="flex-1 p-6 lg:p-10">
-      <h1 className="mb-6 text-3xl font-bold text-[#032147] dark:text-white">
-        Documents
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-[#032147] dark:text-white">
+          Documents
+        </h1>
+        <SignOutButton />
+      </div>
       <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {catalog.map((entry) => (
           <li

@@ -42,4 +42,11 @@ describe("Dashboard", () => {
       catalog.filter((entry) => !entry.available).length
     );
   });
+
+  it("shows a sign-out button when logged in", () => {
+    login();
+    render(<Dashboard />);
+
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+  });
 });
