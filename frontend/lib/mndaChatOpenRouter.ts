@@ -114,6 +114,11 @@ export function createOpenRouterMndaChatSender(apiKey: string): SendMndaChatMess
       },
       body: JSON.stringify({
         model: MODEL,
+        // Not every provider serving this free model supports structured
+        // JSON output - without this, OpenRouter only *prefers* a provider
+        // that does, and can still route to one that doesn't, which fails
+        // with an opaque "Provider returned error".
+        provider: { require_parameters: true },
         reasoning: { effort: "low" },
         messages: [{ role: "system", content: buildSystemPrompt(fields) }, ...messages],
         response_format: {

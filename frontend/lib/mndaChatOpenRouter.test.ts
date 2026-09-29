@@ -27,7 +27,7 @@ describe("createOpenRouterMndaChatSender", () => {
 
     const sentBody = JSON.parse(init.body as string);
     expect(sentBody.model).toBe("google/gemma-4-26b-a4b-it:free");
-    expect(sentBody.provider).toBeUndefined();
+    expect(sentBody.provider).toEqual({ require_parameters: true });
     expect(sentBody.response_format.type).toBe("json_schema");
     expect(sentBody.messages[0].role).toBe("system");
     expect(sentBody.messages.at(-1)).toEqual({ role: "user", content: "hello" });
