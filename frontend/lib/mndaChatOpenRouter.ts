@@ -138,15 +138,28 @@ export function createOpenRouterMndaChatSender(apiKey: string): SendMndaChatMess
       }),
     });
 
-    if (!response.ok) {
+    const body = await response.json().catch(() => null);
+
+    // OpenRouter sometimes returns 200 OK with an embedded error when its own
+    // gateway succeeds but the upstream model provider fails (e.g. a free-tier
+    // backend being temporarily overloaded) - check for that before assuming a
+    // 200 means a real reply, and before assuming a non-2xx status means the
+    // body has no useful detail.
+    if (body?.error) {
+      if (body.error.metadata?.error_type === "provider_overloaded") {
+        throw new Error(
+          "The free model's servers are temporarily overloaded. Please wait a moment and try again."
+        );
+      }
       // This is the user's own key/account, so surface OpenRouter's actual
       // reason (e.g. rate limit, invalid key) instead of a generic message.
-      const errorBody = await response.json().catch(() => null);
-      const detail = errorBody?.error?.message;
-      throw new Error(detail ? `OpenRouter error: ${detail}` : "OpenRouter request failed. Check your API key and try again.");
+      throw new Error(`OpenRouter error: ${body.error.message}`);
     }
 
-    const body = await response.json();
+    if (!response.ok) {
+      throw new Error("OpenRouter request failed. Check your API key and try again.");
+    }
+
     const choice = body?.choices?.[0];
     const content = choice?.message?.content;
     if (typeof content !== "string" || content.length === 0) {

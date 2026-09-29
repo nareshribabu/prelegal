@@ -57,6 +57,25 @@ describe("createOpenRouterMndaChatSender", () => {
     await expect(sendMessage([], createDefaultMndaFormData())).rejects.toThrow();
   });
 
+  it("throws a friendly message when the provider is overloaded, even on a 200 response", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          error: {
+            message: "Upstream error from Nvidia: Service temporarily overloaded",
+            code: 503,
+            metadata: { error_type: "provider_overloaded" },
+          },
+        }),
+      }))
+    );
+
+    const sendMessage = createOpenRouterMndaChatSender("sk-or-test-key");
+    await expect(sendMessage([], createDefaultMndaFormData())).rejects.toThrow(/temporarily overloaded/i);
+  });
+
   it("throws when the response has no message content", async () => {
     vi.stubGlobal(
       "fetch",
